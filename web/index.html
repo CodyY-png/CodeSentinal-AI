@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CodeSentinel AI 測試控制台</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+<header><a class="brand" href="/">CodeSentinel <span>AI</span></a><span class="environment">本機開發環境</span><a href="/docs">API 文件 ↗</a></header>
+<main>
+  <section class="intro"><p class="eyebrow">軟體測試與可靠性分析</p><h1>每次修改，都有驗證依據。</h1><p>執行訂單計算專案的測試，查看結果並保留分析紀錄。</p></section>
+  <section class="launch" aria-labelledby="project-title"><div><span class="eyebrow">目前專案</span><h2 id="project-title">訂單金額計算</h2><p>Python / pytest <span class="separator">·</span> 固定本機測試套件</p></div><form id="run-form"><label for="timeout">執行上限（秒）<input id="timeout" type="number" min="1" max="300" value="60" required></label><button id="start" type="submit">▶ 啟動測試</button></form></section>
+  <p class="notice">本階段執行人工撰寫與已檢查的測試。AI 生成尚未連接到此頁面。</p>
+  <p id="message" role="status" aria-live="polite"></p>
+  <div class="workspace">
+    <section class="history" aria-labelledby="history-title"><div class="section-head"><h2 id="history-title">分析紀錄</h2><button id="refresh" class="secondary" type="button">重新整理</button></div><p class="caption">最近 20 次 API 任務</p><div id="history-list"><p class="empty">正在讀取紀錄…</p></div></section>
+    <section class="results" aria-labelledby="result-title"><div class="section-head"><h2 id="result-title">測試結果</h2><span id="status" class="status">尚未選取</span></div><div id="detail"><div class="empty-state"><span class="empty-icon" aria-hidden="true">⌘</span><h3>準備好開始驗證</h3><p>啟動一次測試，或從左側選取歷史紀錄。</p></div></div></section>
+  </div>
+  <footer>測試通過表示符合現有測試斷言，無法單獨證明程式沒有錯誤。</footer>
+</main>
+</body></html>

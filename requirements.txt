@@ -1,2 +1,5 @@
 pytest>=8,<10
 pytest-cov>=5,<8
+fastapi==0.162.2
+uvicorn==0.54.0
+httpx==0.28.1

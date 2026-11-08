@@ -5,5 +5,7 @@ __pycache__/
 htmlcov/
 reports/
 .env
+.env.*
+generated/
 output/.word-preview/
 output/build_word.py
