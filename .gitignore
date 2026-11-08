@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.coverage
+htmlcov/
+reports/
+.env
+output/.word-preview/
+output/build_word.py
