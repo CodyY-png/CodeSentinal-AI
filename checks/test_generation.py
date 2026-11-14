@@ -1,9 +1,11 @@
 """Offline checks of API response handling. Never call a live service."""
 
+from pathlib import Path
+import tempfile
 import unittest
 from unittest.mock import patch
 
-from generate_tests import call_api, extract_code
+from generate_tests import call_api, discover_modules, extract_code
 from urllib.error import HTTPError
 
 
@@ -15,6 +17,18 @@ def response(text):
 
 
 class GenerationChecks(unittest.TestCase):
+    def test_discovers_nested_sources_without_reading_test_or_environment_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            project = Path(directory)
+            for relative in ('main.py', 'src/example/service.py', 'tests/test_service.py',
+                             '.venv/dependency.py', 'generated/candidate.py'):
+                path = project / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text('value = 1\n', encoding='utf-8')
+            modules, skipped = discover_modules(project)
+        self.assertEqual([path for path, _ in modules], ['main.py', 'src/example/service.py'])
+        self.assertEqual(skipped, [])
+
     def test_extracts_code_after_reasoning_item(self):
         code = 'def test_zero():\n    assert 0 == 0'
         self.assertEqual(extract_code(response(code)), code + '\n')

@@ -7,6 +7,10 @@ def test_regular_amount():
     assert calculate_total(500) == 500
 
 
+def test_amount_just_below_discount_threshold():
+    assert calculate_total(999) == 999
+
+
 def test_discount_above_threshold():
     assert calculate_total(1500) == pytest.approx(1350)
 

@@ -5,17 +5,18 @@ let selected = null, timer = null, active = false, selectionVersion = 0;
 function el(tag, text, className) { const node=document.createElement(tag); if(text!==undefined)node.textContent=text; if(className)node.className=className; return node; }
 function badge(status) { return el('span',labels[status] || status,'status '+status); }
 function message(text,error=false){$('message').textContent=text;$('message').className=error?'error':'';}
-async function api(path,options={}){
-  const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),12000);
-  try{const response=await fetch(path,{...options,signal:controller.signal});const data=await response.json();if(!response.ok){throw new Error(response.status===409?'已有分析正在執行，請等候完成。':`請求失敗（${response.status}），請確認服務狀態。`);}return data;}
+async function api(path,options={},timeoutMs=12000){
+  const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),timeoutMs);
+  try{const response=await fetch(path,{...options,signal:controller.signal});const data=await response.json();if(!response.ok){throw new Error(typeof data.detail==='string'?data.detail:`請求失敗（${response.status}），請確認輸入。`);}return data;}
   catch(error){if(error.name==='AbortError')throw new Error('連線逾時，請重新整理紀錄，確認任務是否已建立。');throw error;}
   finally{clearTimeout(timeout);}
 }
-function syncButton(){ $('start').disabled=active; $('start').textContent=active?'測試執行中…':'▶ 啟動測試'; }
+function syncButton(){ $('start').disabled=active; $('start').textContent=active?'測試執行中…':'啟動測試'; }
 function renderTask(task){
   $('status').replaceWith(Object.assign(badge(task.status),{id:'status'}));
   const detail=$('detail');detail.replaceChildren();
   detail.append(el('p',`任務 ${task.id}`,'meta'));
+  detail.append(el('p', task.project || '內建訂單示範', 'meta'));
   if(!task.result){detail.append(el('p',task.message || (['queued','running'].includes(task.status)?'正在執行測試，結果將自動更新。':'本次任務沒有測試結果。')));return;}
   const result=task.result, counts=result.counts, stats=el('div',undefined,'stats');
   for(const [key,label] of [['passed','通過'],['failed','失敗'],['errors','錯誤'],['skipped','略過']]){const stat=el('div',undefined,'stat');stat.append(el('strong',String(counts[key])),el('span',label));stats.append(stat);}detail.append(stats);
@@ -46,9 +47,24 @@ $('run-form').addEventListener('submit',async event=>{
   event.preventDefault();if(active)return;
   const timeout=Number($('timeout').value);if(!Number.isInteger(timeout)||timeout<1||timeout>300){message('請輸入 1 到 300 秒的整數。',true);return;}
   active=true;syncButton();message('正在建立測試任務…');
-  try{const task=await api('/analyses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({timeout})});selected=task.id;message('任務已建立，結果會自動更新。');}
+  try{const task=await api('/analyses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({timeout,project:$('project').value.trim() || '.'})});selected=task.id;message('任務已建立，結果會自動更新。');}
   catch(error){message(error.message,true);active=false;syncButton();}
   await refresh();
 });
 $('refresh').addEventListener('click',()=>{message('');refresh();});
-refresh();
+async function initializeDashboard() {
+  try {
+    const settings = await api('/settings');
+    $('environment').textContent = settings.remote ? '受邀訪客' : '本機開發環境';
+    if (settings.remote) {
+      $('generation-message').textContent = '選取 Python ZIP 後會掃描原始碼。診斷疑點會標為待驗證。';
+      return;
+    }
+    document.querySelectorAll('[data-local]').forEach(element => { element.hidden = false; });
+    refresh();
+  } catch (error) {
+    message(error.message, true);
+  }
+}
+
+initializeDashboard();

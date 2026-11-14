@@ -5,18 +5,66 @@
   <title>CodeSentinel AI 測試控制台</title>
   <link rel="stylesheet" href="/static/style.css">
   <script src="/static/app.js" defer></script>
+  <script src="/static/generation.js" defer></script>
 </head>
 <body>
-<header><a class="brand" href="/">CodeSentinel <span>AI</span></a><span class="environment">本機開發環境</span><a href="/docs">API 文件 ↗</a></header>
+<p id="local-file-help" hidden>請先啟動 FastAPI，再開啟
+  <a href="http://127.0.0.1:8000/">http://127.0.0.1:8000/</a> 使用控制台。</p>
+<script>
+  if (location.protocol === 'file:') {
+    document.getElementById('local-file-help').hidden = false;
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelector('main').hidden = true;
+    });
+  }
+</script>
+<header><a class="brand" href="/">CodeSentinel <span>AI</span></a><span class="environment" id="environment"></span><a href="/docs">API 文件 ↗</a></header>
 <main>
-  <section class="intro"><p class="eyebrow">軟體測試與可靠性分析</p><h1>每次修改，都有驗證依據。</h1><p>執行訂單計算專案的測試，查看結果並保留分析紀錄。</p></section>
-  <section class="launch" aria-labelledby="project-title"><div><span class="eyebrow">目前專案</span><h2 id="project-title">訂單金額計算</h2><p>Python / pytest <span class="separator">·</span> 固定本機測試套件</p></div><form id="run-form"><label for="timeout">執行上限（秒）<input id="timeout" type="number" min="1" max="300" value="60" required></label><button id="start" type="submit">▶ 啟動測試</button></form></section>
-  <p class="notice">本階段執行人工撰寫與已檢查的測試。AI 生成尚未連接到此頁面。</p>
+  <section class="intro"><h1>Python 專案測試控制台</h1><p>檢查專案範圍、生成 pytest 候選測試，並查看實際執行結果。</p></section>
+  <section class="launch project-panel" aria-labelledby="project-title" data-local hidden>
+    <div class="project-field">
+      <h2 id="project-title">本機專案</h2>
+      <label for="project">專案根目錄</label>
+      <input id="project" type="text" value="." maxlength="4096" spellcheck="false" aria-describedby="project-help">
+      <p id="project-help">「.」代表 CodeSentinel AI。本機 pytest 會執行此資料夾中的程式，請選擇你信任的專案。</p>
+    </div>
+    <form id="run-form">
+      <label for="timeout">執行上限（秒）<input id="timeout" type="number" min="1" max="300" value="60" required></label>
+      <button id="start" type="submit">啟動測試</button>
+    </form>
+  </section>
+  <section class="generation-panel" aria-labelledby="generation-title">
+    <div class="section-head"><h2 id="generation-title">LLM 測試生成</h2><button id="scan" type="button" data-local hidden>掃描並預覽</button></div>
+    <label for="project-zip">或上傳 Python 專案 ZIP（最多 10 MB）</label>
+    <input id="project-zip" type="file" accept=".zip,application/zip">
+    <p id="generation-message" role="status">先掃描專案，再選擇模組查看會送出的內容。</p>
+    <div id="generation-content" hidden>
+      <label for="module-select">Python 模組</label>
+      <select id="module-select"></select>
+      <details id="skipped-modules" hidden><summary>略過的檔案</summary><ul id="skipped-list"></ul></details>
+      <details id="request-details" hidden><summary>查看模型請求</summary><pre id="request-preview"></pre></details>
+      <div id="generation-actions" hidden>
+        <label class="consent"><input id="send-confirm" type="checkbox"><span id="send-label">同意送出模組的預覽內容</span></label>
+        <button id="generate" type="button" disabled>生成候選測試</button>
+      </div>
+      <div id="candidate-result" hidden>
+        <div id="findings"></div>
+        <h3>候選測試</h3><p>核對規格與程式內容，確認後另存為該專案的 <code>test_*.py</code>。</p>
+        <pre id="candidate-code"></pre>
+        <div data-local hidden>
+          <label for="reviewed-code">核對或修改候選測試</label>
+          <textarea id="reviewed-code" rows="9" spellcheck="false" maxlength="64000"></textarea>
+          <label class="consent"><input id="review-confirm" type="checkbox">我已核對測試，並信任此 Python 專案，可在本機執行。</label>
+          <button id="run-candidate" type="button" disabled>執行候選測試</button>
+        </div>
+      </div>
+    </div>
+  </section>
   <p id="message" role="status" aria-live="polite"></p>
-  <div class="workspace">
+  <div class="workspace" data-local hidden>
     <section class="history" aria-labelledby="history-title"><div class="section-head"><h2 id="history-title">分析紀錄</h2><button id="refresh" class="secondary" type="button">重新整理</button></div><p class="caption">最近 20 次 API 任務</p><div id="history-list"><p class="empty">正在讀取紀錄…</p></div></section>
     <section class="results" aria-labelledby="result-title"><div class="section-head"><h2 id="result-title">測試結果</h2><span id="status" class="status">尚未選取</span></div><div id="detail"><div class="empty-state"><span class="empty-icon" aria-hidden="true">⌘</span><h3>準備好開始驗證</h3><p>啟動一次測試，或從左側選取歷史紀錄。</p></div></div></section>
   </div>
-  <footer>測試通過表示符合現有測試斷言，無法單獨證明程式沒有錯誤。</footer>
+  <footer data-local hidden>測試通過表示符合現有測試斷言，無法單獨證明程式沒有錯誤。</footer>
 </main>
 </body></html>
